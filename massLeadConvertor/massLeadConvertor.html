@@ -1,0 +1,133 @@
+<template>
+    <lightning-card class="card">
+      <template if:true={records}>
+       <div class="top-container">
+        <div class="heading">LEAD CONVERTOR</div>
+      </div> 
+      </br>
+        <div class="size_heading">
+          <p>No. of Leads: {currentNumber}</p>
+          </div>
+          
+      </br>
+
+<!-- By using custom data table -->
+<div class="table-container" onscroll={handleScroll} >
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered" aria-label="Example table of Opportunities with vertical borders">
+            <thead>
+              <tr class="slds-line-height_reset">
+                <th class="rows" scope="col">
+                    
+                    <lightning-input type="checkbox" checked={allCheckboxSelected} onchange={SelectAllCheckbox}></lightning-input>
+                    </th>
+                <th class="rows" scope="col">
+                    <div class="slds-truncate" title="S.NO">S.NO</div>
+                  </th>
+                <th class="rows" scope="col">
+                  <div class="slds-truncate" title="NAME">NAME</div>
+                </th>
+                <th class="rows" scope="col">
+                  <div class="slds-truncate" title="EMAIL">EMAIL</div>
+                </th>
+                <th class="rows" scope="col">
+                    <div class="slds-truncate" title="COMPANY">COMPANY</div>
+                  </th>
+                  <th class="rows" scope="col">
+                    <div class="slds-truncate" title="LEAD SOURCE">LEAD SOURCE</div>
+                  </th>
+                  <th class="rows" scope="col">
+                    <div class="slds-truncate" title="INDUSTRY">INDUSTRY</div>
+                  </th>
+                  <th class="rows" scope="col">
+                    <div class="slds-truncate" title="LEAD STATUS">LEAD STATUS</div>
+                  </th>
+                  <th class="rows" scope="col">
+                    <div class="slds-truncate" title="RATING">RATING</div>
+                  </th>
+                <th class="rows" scope="col">
+                  <div class="slds-truncate" title="PHONE">PHONE</div>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+                <template for:each={records} for:item="record">
+                    <tr class="slds-hint-parent" key={record.Id}>
+                        <td>
+                            <lightning-input type="checkbox" data-id={record.Id} checked={allSelected} class="checked slds-align_absolute-center, ightning-input" onchange={checkbox}></lightning-input>
+                        </td>
+
+                        <th data-label="S.No" scope="row">
+                            <div class="slds-truncate" title="S.No">
+                                {record.IndexNumber}
+                            </div>
+                        </th>
+
+                        <th data-label="Lead" scope="row" data-id={record.Id} onclick={handlenavigateToLeadViewPage}>
+                            <div class="slds-truncate" title="NAME">
+                              <a onclick={handlenavigateToLeadViewPage}>{record.Name}</a>
+                            </div>
+                        </th>
+                    
+                        <td data-label="EMAIL">
+                            <div class="slds-truncate" title="Cloudhub">{record.Email}</div>
+                        </td>
+
+                        <td data-label="COMPANY">
+                          <div class="slds-truncate" title="Cloudhub">{record.Company}</div>
+                      </td>
+
+                      <td data-label="LEAD SOURCE">
+                        <div class="slds-truncate" onchange={uomChange} title="Cloudhub">{record.LeadSource}</div>
+                    </td>
+
+                    <td data-label="INDUSTRY">
+                        <div class="slds-truncate" onchange={uomChange} title="Cloudhub">{record.Industry}</div>
+                  </td>
+
+                        <td data-label="LEAD STATUS">
+                          <div class="slds-truncate" onchange={gstChange} title="Cloudhub">{record.Status}</div>
+                      </td>
+
+                      <td data-label="RATING">  
+                        <div class="slds-truncate" onchange={RatingChange} title="Cloudhub">{record.Rating}</div>
+                         </td>
+
+                         <td data-label="PHONE">  
+                            <div class="slds-truncate" onchange={PhoneChange} title="Cloudhub">{record.Phone}</div>
+                             </td>
+                       </tr> 
+                </template>
+            </tbody>
+          </table>
+        </div>
+
+          <br>
+
+        <div class="footer" >
+          <lightning-button name="save" label="Convert" class="saveButton" variant="brand" disabled={SaveButtonAccees} onclick={SaveOnData}></lightning-button>
+        </div>
+      </template>
+
+      <template if:false={records}>
+        <div class="slds-notify slds-notify_alert slds-alert_error" role="alert"
+        >
+          <span class="slds-icon_container slds-icon-utility-error">
+            <svg class="slds-icon slds-icon_small" aria-hidden="true">
+              <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#error"></use>
+            </svg>
+            <span class="slds-assistive-text">Alert</span>
+          </span>
+            &nbsp;
+        <h1>DATA NOT FOUND</h1>
+      </div>
+      </template>
+        <template if:true={showSpinner}>
+            <div class="backdrop">
+                <lightning-spinner class="spinshow" size="large" variant="brand" >
+                </lightning-spinner>
+            </div>
+        </template>
+    </lightning-card>
+
+</template>
