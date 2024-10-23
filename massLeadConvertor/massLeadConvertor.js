@@ -1,4 +1,4 @@
-import { LightningElement, api, track, wire } from 'lwc';
+import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
@@ -6,6 +6,7 @@ import { refreshApex } from '@salesforce/apex';
 import leadRecords from '@salesforce/apex/LeadConvertorController.fetchleads';
 import Seleted_leadRecords from '@salesforce/apex/LeadConvertorController.SelectedleadsReturn';
 import leadConvertIds from '@salesforce/apex/LeadConvertorController.convertLead';
+//import filteredData from '@salesforce/apex/LeadConvertorController.fetchRecordsByFilter';
 import USER_PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
 import USER_ID from '@salesforce/user/Id';
 
@@ -19,15 +20,14 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     @track currentNumber = 0;       // Start counting from 0
     @track filteredData = [];       // To store and display the filtered records
     @track uniqueLeads = []; 
-    @track searchKey = '';          // To hold the search input
     @track allCheckboxSelected = false; // To check if all checkboxes are selected
+    @track noOfSelectedRecords = 0;   // Total number of selected records
     @track orgUrl;
     @track showSpinner = false;
 
     connectedCallback() {
         // Get the current org URL using window.location.origin
         this.orgUrl = window.location.origin;
-        console.log(this.orgUrl);
     }
 
     // Lifecycle hook to start the automatic counter
@@ -48,6 +48,8 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     // Wire to fetch lead records
     @wire(leadRecords) wiredLeadRecord(result) {
         this.refreshData = result;
+
+        console.log(this.refreshData.length);
         const { data, error } = result;
         if (data) {
             this.records = data.map((record, index) => ({
@@ -60,33 +62,15 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         }
     }
 
-     // Function to handle the search input change
-     searchInput(event) {
-        this.searchKey = event.target.value; // Store the search key
-        console.log(this.searchKey);
-    }
-
     // Function to handle the search button click
-    handleSearchButtonClick() {
-        const searchKey = this.searchKey.toLowerCase(); // Case-insensitive search
-
-        if (searchKey) {
-            const leadRecords = this.records.filter(record => {
-                return record.Name.toLowerCase().includes(searchKey);
-            });
-
-            // Update the filtered records for display
-            this.filteredData = leadRecords;
-        } else {
-            // Reset filteredData if search input is empty
-            this.filteredData = [...this.records];
-        }
-    }
-
-    // Example: You can also automatically update on input change without pressing the search button
-    handleSearchInputChange(event) {
-        this.searchKey = event.target.value;
-        this.handleSearchButtonClick(); // Trigger filtering immediately after input change
+    handleSearch() {
+        filteredData({ whereClause : this.whereClause, searchedValue: this.searchValue }).then(result => {
+            const getFilteredData = result.map((record, index) => ({
+                ...record,
+                IndexNumber: index + 1 // Increment row index by 1 for display
+            }));
+            
+        })
     }
 
     // Handle individual checkbox selection
@@ -97,11 +81,13 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         if (checkboxInput) {
             if (!this.selectedLeads.includes(LeadId)) {
                 this.selectedLeads.push(LeadId);
+                this.noOfSelectedRecords = this.selectedLeads.length;
             }
         } else {
             const index = this.selectedLeads.indexOf(LeadId);
             if (index !== -1) {
                 this.selectedLeads.splice(index, 1);
+                this.noOfSelectedRecords -= 1;
             }
         }
         if (this.selectedLeads.length > 0) {
@@ -118,18 +104,23 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     
         if (this.allCheckboxSelected) {
             this.selectedLeads = [...this.records.map(record => record.Id)]; // Select all lead IDs
+            this.noOfSelectedRecords = this.selectedLeads.length;
+
          await checkboxInputs.forEach(checkbox => {
                 checkbox.checked = true;
                 this.selectedLeads.push(checkbox.dataset.id);
+                
             });
         } else {
             this.selectedLeads = [];
+            this.noOfSelectedRecords = this.selectedLeads.length;
            await checkboxInputs.forEach(checkbox => {
                 checkbox.checked = false;
                 this.selectedLeads.splice(this.selectedLeads.indexOf(checkbox.dataset.id), 1);
+                
             });
         }
-
+         // Disabled Save button if at less than one lead
         this.SaveButtonAccees = this.selectedLeads.length === 0;
     }
 
@@ -154,16 +145,27 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         // Set the unique leads to the component property
         this.uniqueLeads = unique;
         
+         // Check user profile to allow lead conversion
         if (this.userProfile === 'System Administrator' || this.userProfile === 'Standard User Copy') {
-            console.log('Selected Records ===> ' + JSON.stringify(this.selectedLeads));
-            console.log('uniqueLeads Records ===> ' + JSON.stringify(this.uniqueLeads));
 
+             // Call the Apex method to convert leads
           await leadConvertIds({ leads: this.uniqueLeads })
                 .then(result => {
                     this.showSpinner = false;
                     this.SaveButtonAccees = true;
                     const noOfRecords = result.length;
-                    
+
+                     // Reset selected leads and counts
+                    this.noOfSelectedRecords = 0;
+                    this.selectedLeads = [];
+
+                     // Refresh the lead data from the server and update record count
+                     refreshApex(this.refreshData).then(() => {
+                        // Update other things after refresh
+                        const refreshDataSize = this.refreshData.data.length; // Ensure you are getting the correct data after refresh
+                        this.currentNumber = refreshDataSize;
+                    });
+
                     let ShowMessage = '';
 
                     if (noOfRecords === 1) {
@@ -173,7 +175,6 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
                     }
                     
                     if (noOfRecords > 0) {
-                        refreshApex(this.refreshData);
                         this.showToastMessage('Convert Suceesfully', ShowMessage, 'success');
                     }
                 })
@@ -188,6 +189,7 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         }
     }
 
+    // function to show toast message
    async showToastMessage(title, message, variant){
       await  this.dispatchEvent(
             new ShowToastEvent({
@@ -197,24 +199,6 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
             })
         );
     }
-
-    // Navigate to the lead view page
-    handlenavigateToLeadViewPage(evt) {
-        const leadId = evt.currentTarget.dataset.id;
-        
-         // Define the navigation reference
-         this[NavigationMixin.Navigate]({
-            type: 'standard__recordPage',
-            attributes: {
-                url: `${this.orgUrl}/${leadId}`,
-                // objectApiName: 'Lead',
-                // actionName: 'view',
-                // recordId: leadId,
-            }
-        })
-    }
-           // window.open(`${this.orgUrl}/${leadId}`);
-    
 
     // Method to start the automatic counter
     startCounting() {
