@@ -9,6 +9,8 @@ import leadConvertIds from '@salesforce/apex/LeadConvertorController.convertLead
 //import filteredData from '@salesforce/apex/LeadConvertorController.fetchRecordsByFilter';
 import USER_PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
 import USER_ID from '@salesforce/user/Id';
+import { loadScript } from "lightning/platformResourceLoader";
+import CONFETTI from "@salesforce/resourceUrl/confetti";
 
 export default class MassLeadConvertor extends NavigationMixin(LightningElement) {
     @track refreshData = [];        //refresh data after convertion
@@ -28,6 +30,14 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     connectedCallback() {
         // Get the current org URL using window.location.origin
         this.orgUrl = window.location.origin;
+
+        Promise.all([loadScript(this, CONFETTI )])
+        .then(()=>{
+          this.setUpCanvas();
+        })
+        .catch(error => {
+          console.log(error)
+        });
     }
 
     // Lifecycle hook to start the automatic counter
@@ -176,6 +186,7 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
                     
                     if (noOfRecords > 0) {
                         this.showToastMessage('Convert Suceesfully', ShowMessage, 'success');
+                        this.basicCannon(); // Cannonball effect when lead conversion successfully
                     }
                 })
                 .catch(error => {
@@ -210,4 +221,17 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
             }
         }, 0.0000000000001); // Update every second (1000 ms)
     }
+
+    // when user click on convert button then this effect will be shown
+    basicCannon(){
+        // Fire confetti with smaller particle counts in each frame
+            confetti({
+            particleCount: 900,
+            startVelocity: 70,
+            spread: 150,
+            origin:{
+              y: 0.9
+                },
+              });
+            }
 }
