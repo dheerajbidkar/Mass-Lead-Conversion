@@ -1,9 +1,9 @@
 .heading{
     font-size: 21px;
     font-weight: bold;
-    background: rgb(35, 152, 198);
-    color: white;
-    padding-left: 645px;
+    background: #555;
+    color: #f1f1f1;
+    padding-left: 627px;
 }
 
 .card{
@@ -21,25 +21,30 @@
 
 .disabledSaveButton {
     background: lightgray; /* Disabled color */
-    pointer-events: none; /* Disable clicking */
+    pointer-events:fill /* Disable clicking */
 }
 .rows{
-    background: rgb(35, 152, 198);
-    color: white;
+    color: #f1f1f1;
+    background: #555;
     font-weight: bold;
+    text-align: center;
+}
+
+.datarows{
+    text-align: center;
 }
 
 .footer {
     bottom: -1px;
-    width: 100%;
+    width: 98.3%;
     height: 78px;
-    background: rgb(35, 152, 198);
+    background: #555;
     position: fixed;
 
 }
 
 .size_heading{
-    font-size: medium;
+    font-size: larger;
     font-weight: bold;
 }
 
@@ -55,7 +60,7 @@
   
   .spinshow::after {
     position: absolute;
-    content: "Lead Convertion Inprogress...";
+    content: "Please Wait Lead Convertion Inprogress...";
     width: 100%;
     text-align: center;
     top: calc(50% + 3em);
