@@ -8,6 +8,7 @@ import Seleted_leadRecords from '@salesforce/apex/LeadConvertorController.Select
 import leadConvertIds from '@salesforce/apex/LeadConvertorController.convertLead';
 //import filteredData from '@salesforce/apex/LeadConvertorController.fetchRecordsByFilter';
 import USER_PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
+import USER_NAME from '@salesforce/schema/User.Name';
 import USER_ID from '@salesforce/user/Id';
 import { loadScript } from "lightning/platformResourceLoader";
 import CONFETTI from "@salesforce/resourceUrl/confetti";
@@ -16,7 +17,7 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     @track refreshData = [];        //refresh data after convertion
     @track records = [];             //All records to display
     @track selectedLeads = [];      //Selected leads to converting
-    @track userProfile;             //get user profile name
+    @track userProfile='';             //get user profile name
     @track SaveButtonAccees = true; //gives access to save button to user
     @track recordSize = 0;          //Total number of records
     @track currentNumber = 0;       // Start counting from 0
@@ -25,15 +26,29 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     @track allCheckboxSelected = false; // To check if all checkboxes are selected
     @track noOfSelectedRecords = 0;   // Total number of selected records
     @track orgUrl;
+    @track userName;
+    @track showConfetti = false;
+    @track wishTag = '';
     @track showSpinner = false;
 
     connectedCallback() {
         // Get the current org URL using window.location.origin
-        this.orgUrl = window.location.origin;
+        this.orgUrl = window.location.origin; //get current org URL
+
+        var d = new Date();  //get current date and time
+        const time = d.getHours()+':'+d.getMinutes(); //get only current hours and minutes
+        console.log(time);
+
+        if(time >= '05:00' && time <= '11:59' ) {
+            this.wishTag = 'Good Morning';
+        } else if(time >= '12:00' && time <= '17:59') {
+            this.wishTag = 'Good Afternoon';
+        } else if(time >= '18:00' && time <= '4:59') {
+            this.wishTag = 'Good Evening';
+        }
 
         Promise.all([loadScript(this, CONFETTI )])
         .then(()=>{
-          this.setUpCanvas();
         })
         .catch(error => {
           console.log(error)
@@ -46,10 +61,12 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     }
 
     // Wire service to get current user's profile name
-    @wire(getRecord, { recordId: USER_ID, fields: [USER_PROFILE_NAME] })
+    @wire(getRecord, { recordId: USER_ID, fields: [USER_PROFILE_NAME,USER_NAME] })
     currentUserInfo({ error, data }) {
         if (data) {
             this.userProfile = data.fields.Profile.value.fields.Name.value;
+            this.userName = (data.fields.Name.value).toUpperCase();
+            console.log(this.userName);
         } else if (error) {
             this.error = error;
         }
