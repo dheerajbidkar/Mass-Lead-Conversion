@@ -62,11 +62,16 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         console.log(this.refreshData.length);
         const { data, error } = result;
         if (data) {
+            if(data.length > 0){
             this.records = data.map((record, index) => ({
                 ...record,
                 IndexNumber: index + 1 // Increment row index by 1 for display
             }));
             this.recordSize = data.length;
+        }
+        else{
+            this.records = '';
+            }
         } else if (error) {
             this.showToastMessage('Error fetching Lead data', error.body.message, 'error');
         }
