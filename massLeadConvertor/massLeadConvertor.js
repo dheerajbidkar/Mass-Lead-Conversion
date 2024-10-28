@@ -37,14 +37,14 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
 
         var d = new Date();  //get current date and time
         const time = d.getHours()+':'+d.getMinutes(); //get only current hours and minutes
-        console.log(time);
-
-        if(time >= '05:00' && time <= '11:59' ) {
-            this.wishTag = 'Good Morning';
-        } else if(time >= '12:00' && time <= '17:59') {
+        if(time >= '12:0' && time <= '17:59') {
             this.wishTag = 'Good Afternoon';
-        } else if(time >= '18:00' && time <= '4:59') {
+        } else if(time >= '18:0' && time <= '23:59') {
             this.wishTag = 'Good Evening';
+        }else if(time >= '0:0' && time <= '4:59') {
+            this.wishTag = 'Good Night';
+        }else{
+            this.wishTag = 'Good Morning';
         }
 
         Promise.all([loadScript(this, CONFETTI )])
@@ -66,7 +66,6 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         if (data) {
             this.userProfile = data.fields.Profile.value.fields.Name.value;
             this.userName = (data.fields.Name.value).toUpperCase();
-            console.log(this.userName);
         } else if (error) {
             this.error = error;
         }
@@ -75,8 +74,6 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     // Wire to fetch lead records
     @wire(leadRecords) wiredLeadRecord(result) {
         this.refreshData = result;
-
-        console.log(this.refreshData.length);
         const { data, error } = result;
         if (data) {
             if(data.length > 0){
