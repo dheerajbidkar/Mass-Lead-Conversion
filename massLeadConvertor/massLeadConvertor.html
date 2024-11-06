@@ -67,9 +67,9 @@
                           </div>
                       </th>
 
-                      <th data-label="Lead" scope="row" data-id={record.Id} onclick={handlenavigateToLeadViewPage}>
+                       <th data-label="NAME" scope="row">
                           <div class="slds-truncate" title="NAME">
-                            <a onclick={handlenavigateToLeadViewPage}>{record.Name}</a>
+                            <a href="javascript:void(0);" data-id={record.Id} data-name={record.Name} onclick={handlenavigateToLeadViewPage}>{record.Name}</a>
                           </div>
                       </th>
                   
