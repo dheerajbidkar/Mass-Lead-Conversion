@@ -253,4 +253,22 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
                 },
               });
             }
+     handlenavigateToLeadViewPage(event){
+         this.isShowModal = true;
+        this.selectRecordId = event.target.dataset.id;
+        this.selectRecordName = event.target.dataset.name;
+        
+        window.alert(`You want to open ${this.selectRecordName}'s record?`);
+        this[NavigationMixin.GenerateUrl]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: this.selectRecordId,
+                objectApiName: 'Contact',
+                actionName: 'view'
+            }
+        }).then(generatedUrl => {
+            // Open the generated URL in a new tab
+            window.open(generatedUrl, '_blank');
+        });
+    }
 }
