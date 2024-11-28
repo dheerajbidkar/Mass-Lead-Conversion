@@ -72,7 +72,7 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
     }
 
     // Wire to fetch lead records
-    @wire(leadRecords) wiredLeadRecord(result) {
+  @wire(leadRecords) wiredLeadRecord(result) {
         this.refreshData = result;
         const { data, error } = result;
         if (data) {
@@ -81,7 +81,8 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
                 ...record,
                 IndexNumber: index + 1 // Increment row index by 1 for display
             }));
-            this.recordSize = data.length;
+           this.records = this.filterDuplicates(this.records);
+           this.recordSize = this.records.length;
         }
         else{
             this.records = '';
@@ -89,6 +90,20 @@ export default class MassLeadConvertor extends NavigationMixin(LightningElement)
         } else if (error) {
             this.showToastMessage('Error fetching Lead data', error.body.message, 'error');
         }
+    }
+
+    // Filter duplicate leads
+    filterDuplicates(leadRecords) {
+        const uniqueLeadsMap = new Map();
+        leadRecords.forEach(lead => {
+            const uniqueKey = `${lead.Email || ''} - ${lead.Phone || ''} - ${lead.FirstName || ''} - ${lead.LastName || ''}`;
+
+        // Add the lead to the map if the key does not already exist
+        if (!uniqueLeadsMap.has(uniqueKey)) {
+            uniqueLeadsMap.set(uniqueKey, lead);
+        }
+        });
+        return Array.from(uniqueLeadsMap.values());
     }
 
     // Function to handle the search button click
